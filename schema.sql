@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, pw_hash TEXT NOT NULL,
+ role TEXT NOT NULL CHECK(role IN('admin','instructor')), rate_p INTEGER NOT NULL DEFAULT 1800, adi_number TEXT, active INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE IF NOT EXISTS clients(id INTEGER PRIMARY KEY, name TEXT NOT NULL, phone TEXT, email TEXT, address TEXT, dob TEXT, licence_no TEXT,
+ emergency TEXT, theory_passed INTEGER NOT NULL DEFAULT 0, test_date TEXT, passed INTEGER NOT NULL DEFAULT 0, consent_at TEXT NOT NULL,
+ deleted INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS client_skills(client_id INTEGER NOT NULL REFERENCES clients(id), skill TEXT NOT NULL, PRIMARY KEY(client_id,skill));
+CREATE TABLE IF NOT EXISTS lesson_notes(id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), user_id INTEGER REFERENCES users(id), at TEXT NOT NULL, text TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS cars(id INTEGER PRIMARY KEY, reg TEXT UNIQUE NOT NULL, model TEXT, transmission TEXT DEFAULT 'manual', mileage INTEGER DEFAULT 0,
+ mot_due TEXT, insurance_due TEXT, tax_due TEXT, service_due TEXT, status TEXT NOT NULL DEFAULT 'available' CHECK(status IN('available','in service','off-road')));
+CREATE TABLE IF NOT EXISTS lesson_types(id INTEGER PRIMARY KEY, name TEXT NOT NULL, minutes INTEGER NOT NULL, price_p INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS bookings(id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), instructor_id INTEGER NOT NULL REFERENCES users(id),
+ car_id INTEGER NOT NULL REFERENCES cars(id), type_id INTEGER NOT NULL REFERENCES lesson_types(id), start_at TEXT NOT NULL, end_at TEXT NOT NULL,
+ status TEXT NOT NULL DEFAULT 'booked' CHECK(status IN('booked','completed','cancelled','no_show')), price_p INTEGER NOT NULL, charge_p INTEGER NOT NULL DEFAULT 0, notes TEXT);
+CREATE INDEX IF NOT EXISTS ix_bk_start ON bookings(start_at);
+CREATE TABLE IF NOT EXISTS payments(id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), amount_p INTEGER NOT NULL, method TEXT, paid_at TEXT NOT NULL, note TEXT);
+CREATE TABLE IF NOT EXISTS expenses(id INTEGER PRIMARY KEY, category TEXT NOT NULL, car_id INTEGER REFERENCES cars(id), amount_p INTEGER NOT NULL, spent_at TEXT NOT NULL, note TEXT);
+CREATE TABLE IF NOT EXISTS shifts(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), car_id INTEGER REFERENCES cars(id), start_at TEXT NOT NULL, end_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS leave(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), date_from TEXT NOT NULL, date_to TEXT NOT NULL, kind TEXT, status TEXT NOT NULL DEFAULT 'pending');
+CREATE TABLE IF NOT EXISTS car_checks(id INTEGER PRIMARY KEY, car_id INTEGER NOT NULL REFERENCES cars(id), user_id INTEGER REFERENCES users(id), checked_at TEXT NOT NULL,
+ tyres_ok INTEGER, lights_ok INTEGER, fluids_ok INTEGER, clean_ok INTEGER, damage_notes TEXT);
+CREATE TABLE IF NOT EXISTS supplies(id INTEGER PRIMARY KEY, name TEXT NOT NULL, qty INTEGER NOT NULL DEFAULT 0, reorder_level INTEGER NOT NULL DEFAULT 2);
+CREATE TABLE IF NOT EXISTS washes(id INTEGER PRIMARY KEY, car_id INTEGER NOT NULL REFERENCES cars(id), user_id INTEGER REFERENCES users(id), washed_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS waitlist(id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), preference TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS client_logins(client_id INTEGER PRIMARY KEY REFERENCES clients(id), email TEXT UNIQUE NOT NULL, pw_hash TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS lesson_requests(id INTEGER PRIMARY KEY, client_id INTEGER NOT NULL REFERENCES clients(id), wanted TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', created_at TEXT NOT NULL);

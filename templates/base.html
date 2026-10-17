@@ -1,0 +1,9 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Corolla House</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"><link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}"><meta name="theme-color" content="#d3202f"></head><body>
+{% if g.user or g.client %}<header><span class="lp">L</span><b>Corolla House</b>
+<form method="post" action="{{ url_for('logout') }}" class="inline right">{{ csrf_field() }}<span class="mu">{{ g.user.name if g.user else g.client.name }}</span> <button class="sm">Log out</button></form></header>{% endif %}
+{% if g.user %}<nav>{% set links=[('today','Bookings'),('clients','Clients'),('fleet','Fleet'),('team','Team')] + ([('money','Money'),('stats','Stats'),('users','Users')] if g.user.role=='admin' else []) %}
+{% for e,l in links %}<a href="{{ url_for(e) }}" class="{{ 'on' if request.endpoint==e or (e=='clients' and request.endpoint=='client') }}">{{ l }}</a>{% endfor %}</nav>{% endif %}
+<main>{% for c,m in get_flashed_messages(with_categories=true) %}<div class="flash {{ c }}">{{ m }}</div>{% endfor %}{% block body %}{% endblock %}</main>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})</script></body></html>

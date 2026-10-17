@@ -1,0 +1,16 @@
+{% extends 'base.html' %}{% block body %}
+<h2>Hello {{ c.name.split(' ')[0] }}</h2>
+{% if request.args.get('paid') %}<div class="flash ok">Thanks. Your payment will show here shortly.</div>{% endif %}
+<div class="card row"><b class="{{ 'lo' if owed>0 }}">{{ 'You owe ' ~ (owed|gbp) if owed>0 else 'Nothing to pay' }}</b>
+{% if owed>0 and stripe %}<form method="post" action="{{ url_for('portal_pay') }}">{{ csrf_field() }}<button class="btn">Pay now</button></form>{% endif %}</div>
+<h2>Upcoming lessons</h2>{% for b in upcoming %}<div class="card"><div class="row"><div><b>{{ b.start_at[:10]|day }} {{ b.start_at[11:] }}</b><div class="mu">{{ b.tname }} · with {{ b.instructor }}</div></div><b>{{ b.price_p|gbp }}</b></div>
+<form method="post" action="{{ url_for('portal_cancel', i=b.id) }}" onsubmit="return confirm('Cancel this lesson? Under {{ late_h }} hours’ notice costs {{ pct }}% of the price.')">{{ csrf_field() }}<button class="sm">Cancel lesson</button></form></div>
+{% else %}<p class="mu">No lessons booked.</p>{% endfor %}
+<p class="mu">Cancelling with under {{ late_h }} hours’ notice costs {{ pct }}% of the lesson price.</p>
+<h2>Request a lesson</h2><form method="post" action="{{ url_for('portal_request') }}" class="card">{{ csrf_field() }}<label>When would suit you?</label><input name="wanted" placeholder="e.g. Tuesday after 4pm" maxlength="200" required><button class="btn">Send request</button></form>
+{% for r in reqs %}<div class="card mu">Requested: {{ r.wanted }}</div>{% endfor %}
+<h2>My progress</h2><div class="card">{% for s in SKILLS %}<span class="tag {{ 'completed' if s in skills }}">{{ '✓ ' if s in skills }}{{ s }}</span> {% endfor %}
+<p class="mu">Theory test: {{ 'passed' if c.theory_passed else 'not yet' }}{% if c.test_date %} · Practical test: {{ c.test_date }}{% endif %}{% if c.passed %} · You passed!{% endif %}</p></div>
+<h2>Past lessons</h2>{% for b in past %}<div class="card row"><div>{{ b.start_at[:10]|day }}<div class="mu">{{ b.tname }}</div></div><span class="tag {{ b.status }}">{{ b.status|replace('_','-') }}</span></div>{% else %}<p class="mu">None yet.</p>{% endfor %}
+<h2>Change password</h2><form method="post" action="{{ url_for('portal_password') }}" class="card">{{ csrf_field() }}<label>Current password</label><input name="old" type="password" required><label>New password</label><input name="new" type="password" minlength="8" required><button class="btn">Change password</button></form>
+{% endblock %}

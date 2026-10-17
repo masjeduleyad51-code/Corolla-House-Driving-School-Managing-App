@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% import 'macros.html' as m with context %}{% block body %}
+<form method="get"><input type="date" name="d" value="{{ d }}" onchange="this.form.submit()"></form>
+{% for b in rows %}<div class="card"><div class="row"><div><b>{{ b.start_at[11:] }}–{{ b.end_at[11:] }}</b> {{ b.client }}<div class="mu">{{ b.instructor }} · {{ b.reg }} · {{ b.tname }}</div></div>
+<div class="r"><span class="tag {{ b.status }}">{{ b.status|replace('_','-') }}</span><div><b>{{ (b.price_p if b.status=='booked' else b.charge_p)|gbp }}</b></div></div></div>
+{% if b.status=='booked' %}<div class="acts"><form method="post" action="{{ url_for('booking_act', i=b.id, act='done') }}" class="inline">{{ csrf_field() }}<input name="note" placeholder="Lesson note (optional)"><button class="sm">Done</button></form>
+{{ m.post(url_for('booking_act', i=b.id, act='cancel'), 'Cancel') }}{{ m.post(url_for('booking_act', i=b.id, act='noshow'), 'No-show') }}</div>{% endif %}</div>
+{% else %}<p class="mu">No lessons on this day.</p>{% endfor %}
+{% if reqs %}<h2>Lesson requests</h2>{% for r in reqs %}<div class="card row"><div><b>{{ r.name }}</b><div class="mu">{{ r.wanted }}</div></div><div>{% if r.phone %}<a class="sm" target="_blank" rel="noopener" href="https://wa.me/{{ r.phone|replace('+','')|replace(' ','') }}">Reply</a>{% endif %}{{ m.post(url_for('request_done', i=r.id), 'Done') }}</div></div>{% endfor %}{% endif %}
+<h2>Book a lesson</h2>{% if clients %}<form method="post" action="{{ url_for('booking_add') }}" class="card">{{ csrf_field() }}
+<label>Client</label><select name="client_id">{% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+{% if g.user.role=='admin' %}<label>Instructor</label><select name="instructor_id">{% for i in instructors %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}</select>{% endif %}
+<label>Car</label><select name="car_id">{% for c in cars %}<option value="{{ c.id }}">{{ c.reg }} {{ c.model }}{% if c.status!='available' %} ({{ c.status }}){% endif %}</option>{% endfor %}</select>
+<label>Lesson type</label><select name="type_id">{% for t in types %}<option value="{{ t.id }}">{{ t.name }} – {{ t.price_p|gbp }}</option>{% endfor %}</select>
+<label>Date</label><input type="date" name="date" value="{{ d }}" required><label>Start time</label><input type="time" name="time" value="09:00" step="900" required>
+<button class="btn">Book lesson</button></form>{% else %}<p class="mu">Add a client first.</p>{% endif %}
+<h2>Waiting list</h2>{% for w in wait %}<div class="card row"><div><b>{{ w.name }}</b><div class="mu">{{ w.preference }}</div></div><div>
+{% if w.phone %}<a class="sm" target="_blank" rel="noopener" href="https://wa.me/{{ w.phone|replace('+','')|replace(' ','') }}?text={{ ('Hi ' ~ w.name ~ ', a lesson slot has opened at Corolla House. Do you want it?')|urlencode }}">Offer slot</a>{% endif %}
+{{ m.post(url_for('wait_del', i=w.id), 'Remove') }}</div></div>{% else %}<p class="mu">Nobody waiting.</p>{% endfor %}
+{% if clients %}<form method="post" action="{{ url_for('wait_add') }}" class="card">{{ csrf_field() }}<label>Client</label><select name="client_id">{% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select><label>Preferred days and times</label><input name="preference"><button class="btn">Add to waiting list</button></form>{% endif %}
+{% endblock %}

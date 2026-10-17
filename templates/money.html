@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block body %}<h2>Log an expense</h2><form method="post" class="card">{{ csrf_field() }}
+<label>Category</label><select name="category">{% for c in cats %}<option>{{ c }}</option>{% endfor %}</select><label>Amount (£)</label><input name="amount" type="number" step="0.01" inputmode="decimal" required>
+<label>Car (optional)</label><select name="car_id"><option value="">–</option>{% for c in cars %}<option value="{{ c.id }}">{{ c.reg }}</option>{% endfor %}</select><label>Date</label><input type="date" name="spent_at" value="{{ today }}"><label>Note</label><input name="note"><button class="btn">Save expense</button></form>
+<h2>Expenses</h2>{% for e in exp %}<div class="card row"><div><b>{{ e.category }}</b><div class="mu">{{ e.spent_at }} {{ e.reg or '' }} {{ e.note or '' }}</div></div><span>{{ e.amount_p|gbp }}</span></div>{% else %}<p class="mu">None yet.</p>{% endfor %}
+<h2>Payments received</h2>{% for p in pays %}<div class="card row"><div><b>{{ p.name }}</b><div class="mu">{{ p.paid_at }} · {{ p.method }}</div></div><span>{{ p.amount_p|gbp }}</span></div>{% else %}<p class="mu">None yet. Record payments on a client’s page.</p>{% endfor %}
+<p><a class="sm" href="{{ url_for('money_csv') }}">Export CSV for accountant</a></p>{% endblock %}

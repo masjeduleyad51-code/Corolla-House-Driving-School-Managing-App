@@ -1,0 +1,2 @@
+{% macro post(url, label, cls='sm', extra='') %}<form method="post" action="{{ url }}" class="inline">{{ csrf_field() }}{{ extra|safe }}<button class="{{ cls }}">{{ label }}</button></form>{% endmacro %}
+{% macro bars(items) %}{% for b in items %}<div class="col"><span>{{ b.label }}</span><div class="bar"><i style="width:{{ b.pct }}%"></i></div><span>{{ b.text }}</span></div>{% else %}<p class="mu">No data yet.</p>{% endfor %}{% endmacro %}

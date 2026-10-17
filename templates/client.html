@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% import 'macros.html' as m with context %}{% block body %}
+<h2>{{ c.name }}</h2><div class="card"><div class="mu">{{ c.phone }} {{ c.email }}<br>{{ c.address }}<br>Licence {{ c.licence_no }} · DOB {{ c.dob }} · Emergency: {{ c.emergency }}<br>Consent recorded {{ c.consent_at }}</div>
+<div class="acts">{{ m.post(url_for('client_do', i=c.id, what='theory'), 'Theory: ' ~ ('passed' if c.theory_passed else 'not yet'), 'sm ' ~ ('on' if c.theory_passed)) }}
+{{ m.post(url_for('client_do', i=c.id, what='passed'), 'Passed test', 'sm ' ~ ('on' if c.passed)) }}
+<form method="post" action="{{ url_for('client_do', i=c.id, what='testdate') }}" class="inline">{{ csrf_field() }}<input type="date" name="test_date" value="{{ c.test_date or '' }}"><button class="sm">Set test date</button></form></div></div>
+<h2>Skills</h2><div class="card">{% for s in SKILLS %}{{ m.post(url_for('client_do', i=c.id, what='skill'), s, 'sm ' ~ ('on' if s in skills), '<input type="hidden" name="skill" value="' ~ s ~ '">') }}{% endfor %}</div>
+<h2>Notes</h2><form method="post" action="{{ url_for('client_do', i=c.id, what='note') }}" class="card">{{ csrf_field() }}<input name="text" placeholder="Progress note" required><button class="btn">Add note</button></form>
+{% for n in notes %}<div class="card"><div class="mu">{{ n.at }} · {{ n.uname }}</div>{{ n.text }}</div>{% endfor %}
+<h2>Lessons</h2>{% for b in lessons %}<div class="card row"><div>{{ b.start_at[:16] }} · {{ b.instructor }}<div class="mu">{{ b.tname }}{% if b.notes %} · {{ b.notes }}{% endif %}</div></div><span class="tag {{ b.status }}">{{ b.status|replace('_','-') }}</span></div>{% else %}<p class="mu">None yet.</p>{% endfor %}
+{% if g.user.role=='admin' %}<h2>Payments</h2><p class="{{ 'lo' if owed>0 }}">{{ 'Outstanding ' ~ (owed|gbp) if owed>0 else 'Nothing outstanding' }}</p>
+{% for p in pays %}<div class="card row"><span>{{ p.paid_at }} · {{ p.method }}</span><b>{{ p.amount_p|gbp }}</b></div>{% endfor %}
+<form method="post" action="{{ url_for('client_do', i=c.id, what='payment') }}" class="card">{{ csrf_field() }}<label>Amount (£)</label><input name="amount" type="number" step="0.01" inputmode="decimal" required>
+<label>Method</label><select name="method"><option>cash</option><option>bank transfer</option><option>card</option></select><label>Date</label><input type="date" name="paid_at" value="{{ today }}"><button class="btn">Record payment</button></form>
+<h2>Client portal</h2><div class="card">{% if portal %}<p>Portal login: <b>{{ portal.email }}</b></p>{{ m.post(url_for('client_do', i=c.id, what='portal_off'), 'Remove portal access') }}{% else %}<p class="mu">Lets this client see lessons, progress and balance, cancel lessons and request new ones.</p>{% endif %}
+<form method="post" action="{{ url_for('client_do', i=c.id, what='portal') }}">{{ csrf_field() }}<label>Login email</label><input name="email" type="email" value="{{ portal.email if portal else (c.email or '') }}" required><label>Temporary password (8+ characters)</label><input name="password" type="password" minlength="8" required><button class="btn">{{ 'Reset portal password' if portal else 'Give portal access' }}</button></form></div>
+<h2>Data protection</h2><div class="card"><a class="sm" href="{{ url_for('client_export', i=c.id) }}">Export their data (JSON)</a>
+<form method="post" action="{{ url_for('client_do', i=c.id, what='erase') }}" class="inline" onsubmit="return confirm('Erase this client’s personal data? Bookings and payments stay, anonymised, for your accounts.')">{{ csrf_field() }}<button class="sm">Erase personal data</button></form></div>{% endif %}
+{% endblock %}

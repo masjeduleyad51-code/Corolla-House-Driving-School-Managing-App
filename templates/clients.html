@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% block body %}<h2>Clients</h2>
+{% for c in rows %}<a class="card row link" href="{{ url_for('client', i=c.id) }}"><div><b>{{ c.name }}</b><div class="mu">{{ c.phone }} {{ c.email }}</div>
+<div class="mu">Theory {{ 'passed' if c.theory_passed else 'not yet' }}{% if c.test_date %} · Test {{ c.test_date }}{% endif %}{% if c.passed %} · Passed{% endif %}</div></div>
+{% if g.user.role=='admin' %}<b class="{{ 'lo' if c.owed_p>0 }}">{{ 'Owes '~(c.owed_p|gbp) if c.owed_p>0 else 'Settled' }}</b>{% endif %}</a>{% else %}<p class="mu">No clients yet.</p>{% endfor %}
+<details open><summary>Add client</summary><form method="post" class="card">{{ csrf_field() }}
+<label>Name</label><input name="name" required><label>Phone (with country code, e.g. 447700900123)</label><input name="phone" type="tel"><label>Email</label><input name="email" type="email">
+<label>Address</label><input name="address"><label>Date of birth</label><input name="dob" type="date"><label>Provisional licence number</label><input name="licence_no">
+<label>Emergency contact</label><input name="emergency"><label>Test date</label><input name="test_date" type="date">
+<label class="chk"><input type="checkbox" name="theory"> Theory test passed</label><label class="chk"><input type="checkbox" name="consent"> Client has consented to us storing their data</label>
+<button class="btn">Save client</button></form></details>{% endblock %}

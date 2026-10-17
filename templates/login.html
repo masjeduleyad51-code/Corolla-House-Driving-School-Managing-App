@@ -1,0 +1,2 @@
+{% extends 'base.html' %}{% block body %}<div class="card narrow"><h1>Corolla House</h1><p class="mu">Driving school manager</p>
+<form method="post">{{ csrf_field() }}<label>Email</label><input name="email" type="email" required autofocus><label>Password</label><input name="password" type="password" required><button class="btn">Log in</button></form></div>{% endblock %}
